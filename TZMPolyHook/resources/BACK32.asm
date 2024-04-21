@@ -38,10 +38,14 @@ extern jmpAdress:DWORD;
 .code
 ;定义函数
 jmpFunction PROC
-mov eax,999
-mov [ecx],eax
-mov eax,[esp+00000450h]
-jmp jmpAdress
+push eax;
+mov eax,sss;
+mov [esi+48h],eax;
+pop eax;
+mov eax,[esi+48h];
+mov [esi+58h],eax
+
+jmp jmpAdress;
 jmpFunction ENDP
 HookFunc PROC
 	    ;保存寄存器

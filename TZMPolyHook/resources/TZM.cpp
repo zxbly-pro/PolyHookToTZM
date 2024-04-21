@@ -3,6 +3,7 @@
 #include<vector>
 #include<time.h>
 #include<iostream>
+#include <string>
 
 //每次读取内存的最大大小
 #define BLOCKMAXSIZE 409600
@@ -117,7 +118,7 @@ int SearchMemory(HANDLE hProcess, char* Tzm, ULONG64 StartAddress, ULONG64 EndAd
 			//可执行
 			mbi.Protect == PAGE_EXECUTE ||
 			//可读可执行
-			mbi.Protect == PAGE_EXECUTE_READ||
+			mbi.Protect == PAGE_EXECUTE_READ ||
 			//可读可执行可写
 			mbi.Protect == PAGE_EXECUTE_READWRITE)
 		{
@@ -158,6 +159,49 @@ SIZE_T FindMemoryTZM(CONST DWORD pid, ULONG64* buffer, CONST ULONG bufferCount, 
 	}
 	delete[] MemoryData;
 	return ResultArray.size();
+}
+//根据函数特征码扫描获取函数地址
+ULONG64 ScanTZM(PCHAR tzm) {
+
+	char str[1024]{};
+	//输出结果
+	std::string res = "";
+	//接收结果数组
+	ULONG64 addr[128] = { 0 };
+	ULONG64 size = 0;
+	//获取当前程序pid
+	int pid = _getpid();
+
+	//记录特征码数量
+	SIZE_T count = 0;
+
+	//扫描特征码(如果劫持注入只能扫描到静态地址的TZM,因为还没初始化完成)
+	count = FindMemoryTZM(pid, addr, sizeof(addr) / 8, tzm, 0x0000000000000000, 0x7FFFFFFFFFFF);
+
+	//输出结果地址
+	for (int i = 0; i < count; i++)
+	{
+		sprintf_s(str, 100, "%016I64X长度%d\n", addr[i], strlen(tzm) / 3 + 1);
+		res += str;
+	}
+
+	switch (count)
+	{
+	case 0:
+		MessageBox(0, "未扫描到特征码", "提示", MB_SYSTEMMODAL);
+		return 0;
+		break;
+	case 1:
+		MessageBox(0, res.c_str(), "唯一TZM地址:", MB_SYSTEMMODAL);
+		return addr[0];
+		break;
+	default:
+		MessageBox(0, res.c_str(), "扫描到多个TZM地址:", MB_SYSTEMMODAL);
+		return addr[0];
+		break;
+	}
+	return 0;
+
 }
 /*
 VOID Test()
