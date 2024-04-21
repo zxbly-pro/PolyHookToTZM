@@ -20,7 +20,7 @@ option casemap:none
 ;EXTERNDEF ogAdress:DWORD
 ;EXTERNDEF HookFunc:PROTO
 ;EXTERNDEF HookFuncCpu:PROTO
-
+extern jmpAdress:DWORD;
 ;定义代码段 类似于code segment
 ;变量定义
 ;[变量名] 助记符 表达式,[,表达式]
@@ -37,6 +37,12 @@ option casemap:none
 ;代码段，遇到end代码段结束
 .code
 ;定义函数
+jmpFunction PROC
+mov eax,999
+mov [ecx],eax
+mov eax,[esp+00000450h]
+jmp jmpAdress
+jmpFunction ENDP
 HookFunc PROC
 	    ;保存寄存器
 		push eax;

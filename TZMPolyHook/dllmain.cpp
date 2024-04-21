@@ -91,7 +91,15 @@ void hookTest() {
 	initTZM();
 	jmpAdress = tzmAdress + 10;
 	detour = make_unique<x64Detour>((uint64_t)(tzmAdress), (uint64_t)&jmpFunction, &oldAdress);
-	detour->hook();
+	if (detour->hook())
+	{
+		sprintf_s(str, 100, "hook成功\n", sum);
+		MessageBox(0, str, "提示", MB_SYSTEMMODAL);
+	}
+	else {
+		sprintf_s(str, 100, "hook失败\n", sum);
+		MessageBox(0, str, "提示", MB_SYSTEMMODAL);
+	}
 }
 
 
