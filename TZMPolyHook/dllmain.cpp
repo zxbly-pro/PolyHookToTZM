@@ -33,7 +33,7 @@ unique_ptr<x64Detour> detour;
 unique_ptr<x86Detour> detour;
 #endif
 EXTERN_C void jmpFunction();
-
+EXTERN_C int nowmoney = 2323;
 
 
 //初始化需要的TZM数据
@@ -42,14 +42,13 @@ void initTZM()
 	//noita.exe.text+82F445 - 8B 46 48              - mov eax,[esi+48]
 	tzmAdress = ScanTZM("8B 46 48 89 46 58");
 	if (tzmAdress == 0) {
-		sprintf_s(str, 100, "未扫描到特征码\n", sum);
+		sprintf_s(str, 100, "未扫描到特征码\n");
 	}
 	else if (tzmAdress == 1) {
-		sprintf_s(str, 100, "特征码不唯一\n", sum);
+		sprintf_s(str, 100, "特征码不唯一\n");
 	}
 	else
-		sprintf_s(str, 100, "有效特征码\n", sum);
-	sprintf_s(str, 100, "%016I64X\n", tzmAdress);
+		sprintf_s(str, 100, "有效特征码\n%016I64X\n", tzmAdress);
 	MessageBox(0, str, "提示", MB_SYSTEMMODAL);
 }
 
@@ -62,14 +61,13 @@ void hookTest() {
 #else
 	detour = make_unique<x86Detour>((uint64_t)(tzmAdress), (uint64_t)&jmpFunction, &oldAdress);
 #endif
-	detour = make_unique<x86Detour>((uint64_t)(tzmAdress), (uint64_t)&jmpFunction, &oldAdress);
 	if (detour->hook())
 	{
-		sprintf_s(str, 100, "hook成功\n", sum);
+		sprintf_s(str, 100, "hook成功\n");
 		MessageBox(0, str, "提示", MB_SYSTEMMODAL);
 	}
 	else {
-		sprintf_s(str, 100, "hook失败\n", sum);
+		sprintf_s(str, 100, "hook失败\n");
 		MessageBox(0, str, "提示", MB_SYSTEMMODAL);
 	}
 }

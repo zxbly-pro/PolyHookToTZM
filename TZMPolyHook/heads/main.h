@@ -83,8 +83,8 @@ bool greetings = true;
 bool f9 = false;
 bool f10 = false;
 bool f11 = false;
-ULONG64 tzmAdress = 0;
-ULONG64 healthAdress = 0;
+//ULONG64 tzmAdress = 0;
+//ULONG64 healthAdress = 0;
 
 //==========================================================================================================================
 

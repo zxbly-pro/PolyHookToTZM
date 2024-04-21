@@ -3,7 +3,6 @@
 #include<vector>
 #include<time.h>
 #include<iostream>
-#include <string>
 
 //每次读取内存的最大大小
 #define BLOCKMAXSIZE 409600
@@ -203,30 +202,3 @@ ULONG64 ScanTZM(PCHAR tzm) {
 	return 0;
 
 }
-/*
-VOID Test()
-{
-	MemoryData = new BYTE[BLOCKMAXSIZE];
-
-	DWORD pid = 0;
-	std::vector<ULONG64> ResultArray;
-
-	std::cout << "请输入进程ID：" << std::endl;//25156
-	std::cin >> pid;
-	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, pid);
-
-	int start = clock();
-	SearchMemory(hProcess, (char*)"48 8D 0D 7F 13 ?? 00 E8 3A FF", 0x410000, 0x7FFFFFFFFFFF, 30, ResultArray);
-	int end = clock();
-
-	std::cout << "用时：" << end - start << "毫秒" << std::endl;
-	std::cout << "搜索到" << ResultArray.size() << "个结果" << std::endl;
-
-	for (std::vector<ULONG64>::iterator it = ResultArray.begin(); it != ResultArray.end(); it++)
-	{
-		printf("%x\n", *it);
-	}
-
-	return;
-}
-*/

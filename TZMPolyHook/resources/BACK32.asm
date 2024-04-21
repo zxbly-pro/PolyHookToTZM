@@ -21,6 +21,7 @@ option casemap:none
 ;EXTERNDEF HookFunc:PROTO
 ;EXTERNDEF HookFuncCpu:PROTO
 extern jmpAdress:DWORD;
+EXTERNDEF nowmoney:DWORD;
 ;定义代码段 类似于code segment
 ;变量定义
 ;[变量名] 助记符 表达式,[,表达式]
@@ -39,7 +40,7 @@ extern jmpAdress:DWORD;
 ;定义函数
 jmpFunction PROC
 push eax;
-mov eax,sss;
+mov eax,nowmoney;
 mov [esi+48h],eax;
 pop eax;
 mov eax,[esi+48h];
