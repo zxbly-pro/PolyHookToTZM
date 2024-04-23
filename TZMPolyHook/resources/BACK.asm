@@ -2,9 +2,10 @@
 ;申明需要引入或者导出的变量或者函数,dq表示qdword=64位
 ;extern ogAdress:dq;
 extern jmpAdress:dq;
+extern changeMoney:dq;
 ;extern moenyadress:dq;
 ;extern playerAdress:dq;
-;extern changeMoney:dq;
+
 ;far为函数标记
 ;extern NewFunc:far;
 ;extern NewFuncCpu:far;
@@ -13,9 +14,11 @@ extern jmpAdress:dq;
 ;代码区开始
 .code
 jmpFunction PROC
-mov eax,999
-mov [rcx],eax
-mov rax,[rsp+00000450h]
+push rax
+mov rax,changeMoney
+mov  [rcx+00000180h],rax
+pop rax
+mov ecx,[rcx+00000180h]
 jmp jmpAdress
 jmpFunction ENDP
 

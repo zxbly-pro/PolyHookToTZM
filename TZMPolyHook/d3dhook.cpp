@@ -1,27 +1,7 @@
 // dllmain.cpp : 定义 DLL 应用程序的入口点。
-#include "pch.h"
-#include <intrin.h>
-#include <d3d11.h>
-#include <D3Dcompiler.h>
-#include <tchar.h>
-#include <atlstr.h>
-#include <string>
-#include "polyhook2/Detour/x64Detour.hpp"
-#include "heads/main.h"
-#include <iostream>
-#include <Windows.h>
 
-using namespace std;
 
-#pragma comment(lib, "D3dcompiler.lib")
-#pragma comment(lib, "d3d11.lib")
-#pragma comment(lib, "winmm.lib")
-
-//imgui
-#include "resources/imgui/imgui.h"
-#include "resources/imgui/imgui_impl_win32.h"
-#include "resources/imgui/imgui_impl_dx11.h"
-#include <timeapi.h>
+#include "./heads/d3dhook.h"
 
 
 //原Detour需要的lib文件和头文件
@@ -32,41 +12,13 @@ using namespace std;
 //#pragma comment(lib, "detours.X86/detours.lib")
 //#endif
 
-
-//创建hook对象指针
-
+//定义hook对象指针
 unique_ptr<PLH::x64Detour> presentHook;
 unique_ptr<PLH::x64Detour> resizeBuffersHook;
 unique_ptr<PLH::x64Detour> pSSetShaderResourcesHook;
 unique_ptr<PLH::x64Detour> drawHook;
 unique_ptr<PLH::x64Detour> drawIndexedHook;
 unique_ptr<PLH::x64Detour> drawIndexedInstancedHook;
-
-//unique_ptr<PLH::x64Detour> createQueryHook;
-
-
-
-//备份hook函数原始地址
-uint64_t presentHookRedirectOld;
-uint64_t resizeBuffersHookRedirectOld;
-uint64_t pSSetShaderResourcesHookRedirectOld;
-uint64_t drawHookRedirectOld;
-uint64_t drawIndexedHookRedirectOld;
-uint64_t drawIndexedInstancedHookRedirectOld;
-
-//uint64_t createQueryHookRedirectOld;
-
-
-#pragma warning( disable : 4244 )
-
-//定义函数指针
-typedef HRESULT(__stdcall* D3D11PresentHook) (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags);
-typedef HRESULT(__stdcall* D3D11ResizeBuffersHook) (IDXGISwapChain* pSwapChain, UINT BufferCount, UINT Width, UINT Height, DXGI_FORMAT NewFormat, UINT SwapChainFlags);
-typedef void(__stdcall* D3D11PSSetShaderResourcesHook) (ID3D11DeviceContext* pContext, UINT StartSlot, UINT NumViews, ID3D11ShaderResourceView* const* ppShaderResourceViews);
-typedef void(__stdcall* D3D11DrawHook) (ID3D11DeviceContext* pContext, UINT VertexCount, UINT StartVertexLocation);
-typedef void(__stdcall* D3D11DrawIndexedHook) (ID3D11DeviceContext* pContext, UINT IndexCount, UINT StartIndexLocation, INT BaseVertexLocation);
-typedef void(__stdcall* D3D11DrawIndexedInstancedHook) (ID3D11DeviceContext* pContext, UINT IndexCountPerInstance, UINT InstanceCount, UINT StartIndexLocation, INT BaseVertexLocation, UINT StartInstanceLocation);
-typedef void(__stdcall* D3D11CreateQueryHook) (ID3D11Device* pDevice, const D3D11_QUERY_DESC* pQueryDesc, ID3D11Query** ppQuery);
 
 //初始化
 D3D11PresentHook phookD3D11Present = NULL;
@@ -84,10 +36,171 @@ DWORD_PTR* pSwapChainVtable = NULL;
 DWORD_PTR* pContextVTable = NULL;
 DWORD_PTR* pDeviceVTable = NULL;
 
+//备份hook函数原始地址
+uint64_t presentHookRedirectOld;
+uint64_t resizeBuffersHookRedirectOld;
+uint64_t pSSetShaderResourcesHookRedirectOld;
+uint64_t drawHookRedirectOld;
+uint64_t drawIndexedHookRedirectOld;
+uint64_t drawIndexedInstancedHookRedirectOld;
+
+//uint64_t createQueryHookRedirectOld;
+
+//对特征码进行hook需要的数据
+unique_ptr<PLH::x64Detour> detour;
+char str[1024]{};
+//定义特征码地址
+ULONG64 tzmAdress;
+//定义需要跳转到自己处理的地址
+EXTERN_C void jmpFunction();
+//自定义数据
+EXTERN_C int changeMoney = 333333;
+//执行完自定义逻辑要继续执行的地址
+EXTERN_C ULONG64 jmpAdress = 0;
+//原始地址保存需要的指针
+uint64_t oldAdress;
+//函数声明
+ULONG64 ScanTZM(PCHAR tzm);
 
 // 设置为1禁用多采样
 const int MultisampleCount = 1;
 
+// 菜单默认设置
+
+bool ModelrecFinder = true;
+int Wallhack = 1;
+bool DeleteTexture = true;
+
+//是否第一次初始化
+bool firstTime = true;
+
+// 深度模具状态
+ID3D11DepthStencilState* DepthStencilState_FALSE = NULL; //depth off
+ID3D11DepthStencilState* DepthStencilState_ORIG = NULL; //depth on
+// 光栅器状态
+ID3D11RasterizerState* DEPTHBIASState_FALSE;
+ID3D11RasterizerState* DEPTHBIASState_TRUE;
+ID3D11RasterizerState* DEPTHBIASState_ORIG;
+#define DEPTH_BIAS_D32_FLOAT(d) (d/(1/pow(2,23)))
+
+// 视图点
+UINT vps = 1;
+D3D11_VIEWPORT viewport;
+float ScreenCenterX;
+float ScreenCenterY;
+
+// RenderTargetView 接口标识可在呈现期间访问的呈现目标子资源。
+ID3D11RenderTargetView* RenderTargetView = NULL;
+
+//vertex
+ID3D11Buffer* veBuffer;
+UINT Stride;
+UINT veBufferOffset;
+D3D11_BUFFER_DESC vedesc;
+
+//index
+ID3D11Buffer* inBuffer;
+DXGI_FORMAT inFormat;
+UINT        inOffset;
+D3D11_BUFFER_DESC indesc;
+
+//psgetConstantbuffers
+UINT pscStartSlot;
+ID3D11Buffer* pscBuffer;
+D3D11_BUFFER_DESC pscdesc;
+
+//vsgetconstantbuffers
+UINT vscStartSlot;
+ID3D11Buffer* vscBuffer;
+D3D11_BUFFER_DESC vscdesc;
+
+//pssetshaderresources
+UINT pssrStartSlot;
+ID3D11Resource* Resource;
+D3D11_SHADER_RESOURCE_VIEW_DESC Descr;
+D3D11_TEXTURE2D_DESC texdesc;
+
+// window消息处理
+HWND window = nullptr;
+// 判断imgui状态是否显示
+bool ShowMenu = false;
+// 原始windows消息处理
+static WNDPROC OriginalWndProcHandler = nullptr;
+
+// 日志,计数等
+bool logger = false;
+int countnum = -1;
+int countStride = -1;
+int countIndexCount = -1;
+int countpscdescByteWidth = -1;
+int countindescByteWidth = -1;
+int countvedescByteWidth = -1;
+
+wchar_t reportValue[256];
+#define SAFE_RELEASE(x) if (x) { x->Release(); x = NULL; }
+HRESULT hr;
+
+// 是否弹出imgui加载弹窗
+bool greetings = true;
+bool f9 = false;
+bool f10 = false;
+bool f11 = false;
+//ULONG64 tzmAdress = 0;
+//ULONG64 healthAdress = 0;
+
+//==========================================================================================================================
+#include <string>
+#include <fstream>
+// 目录
+char dlldir[320];
+// 根据文件名获取目录
+char* GetDirectoryFile(char* filename)
+{
+	static char path[320];
+	strcpy_s(path, dlldir);
+	strcat_s(path, filename);
+	return path;
+}
+
+// 记录日志
+void Log(const char* fmt, ...)
+{
+	if (!fmt)	return;
+
+	char		text[4096];
+	va_list		ap;
+	va_start(ap, fmt);
+	vsprintf_s(text, fmt, ap);
+	va_end(ap);
+
+	ofstream logfile(GetDirectoryFile("log.txt"), ios::app);
+	if (logfile.is_open() && text)	logfile << text << endl;
+	logfile.close();
+}
+
+//==========================================================================================================================
+
+
+// 保存cfg
+void SaveCfg()
+{
+	ofstream fout;
+	fout.open(GetDirectoryFile("d3dwh.ini"), ios::trunc);
+	fout << "Wallhack " << Wallhack << endl;
+	fout << "ModelrecFinder " << ModelrecFinder << endl;
+	fout.close();
+}
+
+// 加载 cfg
+void LoadCfg()
+{
+	ifstream fin;
+	string Word = "";
+	fin.open(GetDirectoryFile("d3dwh.ini"), ifstream::in);
+	fin >> Word >> Wallhack;
+	fin >> Word >> ModelrecFinder;
+	fin.close();
+}
 
 //回调函数
 LRESULT CALLBACK DXGIMsgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) { return DefWindowProc(hwnd, uMsg, wParam, lParam); }
@@ -128,6 +241,22 @@ LRESULT CALLBACK hWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return CallWindowProc(OriginalWndProcHandler, hWnd, uMsg, wParam, lParam);
 }
 
+//初始化需要的TZM数据
+void initTZM()
+{
+	//mov ecx,[rcx+00000180]
+	tzmAdress = ScanTZM("8B 89 80 01 00 00 81 F9 A0");
+	if (tzmAdress == 0) {
+		sprintf_s(str, 100, "未扫描到特征码\n");
+	}
+	else if (tzmAdress == 1) {
+		sprintf_s(str, 100, "特征码不唯一\n");
+	}
+	else
+		sprintf_s(str, 100, "有效特征码\n%016I64X\n", tzmAdress);
+	MessageBox(0, str, "提示", MB_SYSTEMMODAL);
+}
+
 //==========================================================================================================================
 // HOOK渲染函数
 HRESULT __stdcall hookD3D11Present(IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags)
@@ -138,6 +267,9 @@ HRESULT __stdcall hookD3D11Present(IDXGISwapChain* pSwapChain, UINT SyncInterval
 	{
 		Log("初始化\n");
 		firstTime = false; //only once
+
+
+
 
 		// 获取指向创建此接口的设备的指针。
 		if (SUCCEEDED(pSwapChain->GetDevice(__uuidof(ID3D11Device), (void**)&pDevice)))
@@ -513,8 +645,11 @@ void __stdcall hookD3D11Draw(ID3D11DeviceContext* pContext, UINT VertexCount, UI
 {
 	//Log("hookD3D11Draw\n");
 
-	if (GetAsyncKeyState(VK_F9) & 1)
+	if (GetAsyncKeyState(VK_F9) & 1) {
 		Log("Draw called");
+
+	}
+
 
 	return PLH::FnCast(drawHookRedirectOld, phookD3D11Draw)(pContext, VertexCount, StartVertexLocation);
 	//return phookD3D11Draw(pContext, VertexCount, StartVertexLocation);
@@ -687,8 +822,29 @@ void __stdcall hookD3D11DrawIndexedInstanced(ID3D11DeviceContext* pContext, UINT
 {
 	//Log("hookD3D11DrawIndexedInstanced\n");
 	// 捕获F9按下
-	if (GetAsyncKeyState(VK_F9) & 1)
+	if (GetAsyncKeyState(VK_F9) & 1) {
 		MessageBox(0, "f9成功", 0, MB_SYSTEMMODAL);
+		//hook第纳尔
+		initTZM();
+		MessageBox(0, "特征码初始化成功", 0, MB_SYSTEMMODAL);
+		jmpAdress = tzmAdress + 6;
+		detour = make_unique<PLH::x64Detour>((uint64_t)(tzmAdress), (uint64_t)&jmpFunction, &oldAdress);
+		if (detour->hook())
+		{
+			sprintf_s(str, 100, "hook成功\n");
+			MessageBox(0, str, "提示", MB_SYSTEMMODAL);
+		}
+		else {
+			sprintf_s(str, 100, "hook失败\n");
+			MessageBox(0, str, "提示", MB_SYSTEMMODAL);
+		}
+
+		//mov ecx,[rcx+00000180]
+	}
+	if (GetAsyncKeyState(VK_F10) & 1) {
+		MessageBox(0, "修改金币", 0, MB_SYSTEMMODAL);
+		changeMoney = 55555;
+	}
 
 	//如果游戏在DrawIndexedInstanced中绘制玩家模型，那么在这里做所有的事情(见下面的代码)
 

@@ -51,7 +51,7 @@
     <ClInclude Include="heads\imgui_draw_util.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="heads\main.h">
+    <ClInclude Include="heads\d3dhook.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="heads\memory.h">
