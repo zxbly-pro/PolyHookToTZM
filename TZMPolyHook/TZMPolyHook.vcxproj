@@ -170,6 +170,7 @@
     <ClInclude Include="heads\d3dhook.h" />
     <ClInclude Include="heads\memory.h" />
     <ClInclude Include="heads\TZM.h" />
+    <ClInclude Include="heads\vehhook.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="resources\imgui\imconfig.h" />
     <ClInclude Include="resources\imgui\imgui.h" />
@@ -197,14 +198,15 @@
     <ClCompile Include="resources\imgui\imgui_widgets.cpp" />
     <ClCompile Include="resources\imgui_draw_util.cpp" />
     <ClCompile Include="resources\TZM.cpp" />
+    <ClCompile Include="vehhook.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="resources\BACK.asm">
+    <MASM Include="resources\x64.asm">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <FileType>Document</FileType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </MASM>
-    <MASM Include="resources\BACK32.asm">
+    <MASM Include="resources\x86.asm">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>

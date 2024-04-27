@@ -60,6 +60,9 @@
     <ClInclude Include="heads\TZM.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="heads\vehhook.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -95,12 +98,15 @@
     <ClCompile Include="d3dhook.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="vehhook.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="resources\BACK.asm">
+    <MASM Include="resources\x64.asm">
       <Filter>资源文件</Filter>
     </MASM>
-    <MASM Include="resources\BACK32.asm">
+    <MASM Include="resources\x86.asm">
       <Filter>资源文件</Filter>
     </MASM>
   </ItemGroup>

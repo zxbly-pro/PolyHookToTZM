@@ -1,6 +1,14 @@
 //d3d11 wallhack (main.h)
 
 #pragma once
+//编译器首次遇到该文件时，判断名称STR是否被定义过，如果是，直接执行#endif后面的语句；如果不是，执行#ifndef与#endif之间的语句
+#ifndef STR
+//如果上面判断STR未被定义过，用#define定义STR
+#define STR
+//#ifndef与#endif之间的语句,随便你写内容
+
+//条件编译结束
+#endif
 //#include "../pch.h"
 #include <intrin.h>
 #include <d3d11.h>
@@ -23,8 +31,9 @@ using namespace std;
 #include "../resources/imgui/imgui_impl_win32.h"
 #include "../resources/imgui/imgui_impl_dx11.h"
 #include <timeapi.h>
-
-
+EXTERN_C ULONG64 jmpAdress;
+//声明变量来自于其他地方定义
+extern char str[1024];
 
 //声明需要的hook指针
 extern unique_ptr<PLH::x64Detour> presentHook;

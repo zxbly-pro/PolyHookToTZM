@@ -195,7 +195,7 @@ ULONG64 ScanTZM(PCHAR tzm) {
 		return addr[0];
 		break;
 	default:
-		MessageBox(0, res.c_str(), "扫描到多个TZM地址:", MB_SYSTEMMODAL);
+		MessageBox(0, res.c_str(), "扫描到多个TZM地址,默认使用第一个:", MB_SYSTEMMODAL);
 		return addr[0];
 		break;
 	}

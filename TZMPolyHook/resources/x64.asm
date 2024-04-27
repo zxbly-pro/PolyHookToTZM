@@ -3,13 +3,10 @@
 ;extern ogAdress:dq;
 extern jmpAdress:dq;
 extern changeMoney:dq;
-;extern moenyadress:dq;
-;extern playerAdress:dq;
 
 ;far为函数标记
 ;extern NewFunc:far;
 ;extern NewFuncCpu:far;
-
 
 ;代码区开始
 .code
@@ -23,17 +20,22 @@ jmp jmpAdress
 jmpFunction ENDP
 
 moneyfunc PROC
-push rcx
-push rdx
 push rax
-;mov rcx,playerAdress
-;mov rdx,changeMoney
-;call moenyadress
+mov rax,9999999
+mov  [rcx+00000180h],rax
 pop rax
-pop rdx
-pop rcx
-ret 
+mov ecx,[rcx+00000180h]
+jmp jmpAdress
 moneyfunc ENDP
+
+moneyfuncCPU PROC
+push rax
+mov rax,9999999
+mov  [rcx+00000180h],rax
+pop rax
+mov ecx,[rcx+00000180h]
+jmp jmpAdress
+moneyfuncCPU ENDP
 
 ;方法开始
 HookFunc PROC

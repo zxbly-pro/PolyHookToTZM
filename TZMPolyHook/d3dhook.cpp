@@ -48,7 +48,6 @@ uint64_t drawIndexedInstancedHookRedirectOld;
 
 //对特征码进行hook需要的数据
 unique_ptr<PLH::x64Detour> detour;
-char str[1024]{};
 //定义特征码地址
 ULONG64 tzmAdress;
 //定义需要跳转到自己处理的地址
@@ -56,7 +55,7 @@ EXTERN_C void jmpFunction();
 //自定义数据
 EXTERN_C int changeMoney = 333333;
 //执行完自定义逻辑要继续执行的地址
-EXTERN_C ULONG64 jmpAdress = 0;
+ULONG64 jmpAdress = 0;
 //原始地址保存需要的指针
 uint64_t oldAdress;
 //函数声明
