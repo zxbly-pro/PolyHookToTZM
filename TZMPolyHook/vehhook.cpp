@@ -113,7 +113,7 @@ LONG WINAPI  Handler(EXCEPTION_POINTERS* pExceptionInfo)
 #ifdef _WIN64
 
 			//自定义操作(Hook内容,可以操作寄存器)
-				MessageBox(0, "进入VEH", "VEH Hook", MB_SYSTEMMODAL);
+				//MessageBox(0, "进入VEH", "VEH Hook", MB_SYSTEMMODAL);
 				MessageBox(0, "开始获取寄存器数据", "VEH Hook", MB_SYSTEMMODAL);
 
 
@@ -324,8 +324,8 @@ LONG WINAPI  CpuHandler(EXCEPTION_POINTERS* pExceptionInfo)
 				MessageBox(0, "开始获取寄存器数据", "VEH Hook", MB_SYSTEMMODAL);
 
 				//输出寄存器数据
-				sprintf_s(str, 1024, "XSP+4=%016I32X\nXSP+8=%016I32X\nEAX=%016I32X\nEBX=%016I32X\nECX=%016I32X\nEDX=%016I32X\nESI=%016I32X\nEDI=%016I32X\nEBP=%016I32X\nESP=%016I32X\nEIP=%016I32X\n",
-					*(DWORD*)(pExceptionInfo->ContextRecord->XSP + 0x4), *(DWORD*)(pExceptionInfo->ContextRecord->XSP + 0x8),
+				sprintf_s(str, 1024, "XSP=%016I32X\nXSP+8=%016I32X\nEAX=%016I32X\nEBX=%016I32X\nECX=%016I32X\nEDX=%016I32X\nESI=%016I32X\nEDI=%016I32X\nEBP=%016I32X\nESP=%016I32X\nEIP=%016I32X\n",
+					pExceptionInfo->ContextRecord->XSP, *(DWORD*)(pExceptionInfo->ContextRecord->XSP + 0x8),
 					pExceptionInfo->ContextRecord->XAX, pExceptionInfo->ContextRecord->XBX,
 					pExceptionInfo->ContextRecord->XCX, pExceptionInfo->ContextRecord->XDX,
 					pExceptionInfo->ContextRecord->XSI, pExceptionInfo->ContextRecord->XDI,
